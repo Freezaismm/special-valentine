@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Special for Nadine ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #ff8fa3;
+            --bg: #fff0f3;
+            --glass: rgba(255, 255, 255, 0.9);
+            --shadow: 0 8px 32px 0 rgba(255, 107, 107, 0.3);
+        }
+
+        * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #4a4a4a;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- SCREENS --- */
+        .screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 10;
+            padding: 20px;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.1);
+        }
+
+        .photo-frame {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 6px solid white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+            background-color: #eee;
+            position: relative;
+            z-index: 2;
+        }
+
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin: 0;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+            text-align: center;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+            transition: transform 0.2s;
+            margin-top: 20px;
+            font-family: 'Quicksand', sans-serif;
+            position: relative;
+            z-index: 5;
+        }
+
+        .btn:active { transform: scale(0.95); }
+
+        /* --- GAME UI --- */
+        #game-screen { justify-content: flex-start; padding-top: 30px; background: rgba(255,255,255,0.3); }
+
+        .header-stats {
+            display: flex; justify-content: space-between; width: 100%;
+            background: white; padding: 15px; border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
+        }
+
+        .stat-box { text-align: center; }
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+
+        .progress-container {
+            width: 100%; height: 15px; background: rgba(255,255,255,0.5);
+            border-radius: 10px; margin-bottom: 20px; overflow: hidden; border: 2px solid white;
+        }
+
+        .progress-bar {
+            height: 100%; background: linear-gradient(90deg, #ff4d6d, #ff758f);
+            width: 0%; transition: width 0.3s ease;
+        }
+
+        .game-board {
+            width: 320px; height: 320px; background: rgba(255,255,255,0.8);
+            border-radius: 16px; padding: 10px; display: grid;
+            grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr);
+            gap: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); touch-action: none; position: relative;
+        }
+
+        .dot {
+            width: 100%; height: 100%; border-radius: 50%;
+            transform: scale(0.9); transition: transform 0.2s;
+            position: relative; z-index: 2; cursor: pointer;
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.2), inset 2px 2px 6px rgba(255,255,255,0.5);
+        }
+        .dot.active { transform: scale(1.1); filter: brightness(1.2); }
+
+        #svg-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+
+        /* --- WIN SCREEN & LETTER --- */
+        #win-screen {
+            background: rgba(255,240,243, 0.98);
+            z-index: 100;
+        }
+
+        /* Fase 1: Celebrasi */
+        #celebration-phase {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 100%;
+            transition: opacity 0.5s;
+        }
+
+        /* Fase 2: Surat */
+        #letter-phase {
+            display: none; /* Hidden by default */
+            flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 100%;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        #letter-phase.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .letter-container {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            height: 70vh; /* Tinggi tetap agar bisa di-scroll di dalamnya */
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(255, 77, 109, 0.2);
+            position: relative;
+            background-image: radial-gradient(#ffdde1 1px, transparent 1px);
+            background-size: 20px 20px;
+            border-top: 10px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .letter-header {
+            text-align: center;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        /* Scrollable Content Styles */
+        .letter-content {
+            font-family: 'Quicksand', sans-serif;
+            line-height: 1.8;
+            color: #555;
+            font-size: 0.95rem;
+            white-space: pre-line;
+            text-align: justify;
+            overflow-y: auto; /* Enable Scroll */
+            flex-grow: 1; /* Fill remaining space */
+            padding-right: 10px; /* Space for scrollbar */
+            margin-bottom: 15px;
+        }
+
+        /* Custom Scrollbar Aesthetic */
+        .letter-content::-webkit-scrollbar { width: 6px; }
+        .letter-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .letter-content::-webkit-scrollbar-thumb { background: #ff8fa3; border-radius: 10px; }
+        .letter-content::-webkit-scrollbar-thumb:hover { background: #ff4d6d; }
+
+        .scroll-hint { 
+            font-size: 0.75rem; color: #aaa; text-align: center; 
+            margin-top: 5px; animation: bounce 2s infinite; 
+            flex-shrink: 0;
+        }
+
+        /* Animations */
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-5px);} 60% {transform: translateY(-3px);} }
+        
+        /* Confetti */
+        .confetti {
+            position: absolute;
+            width: 10px; height: 10px;
+            background-color: #f2d74e;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        
+        <div id="intro-screen" class="screen">
+            <div class="photo-frame">
+                <img src="https://img.sanishtech.com/u/4289722df2a942721c24d57d46709a0f.png" alt="Nadine">
+            </div>
+            <h1>Not a lot just forever</h1>
+            <p style="text-align: center; color: #666; margin-top: 10px;">
+                Spesial Valentine Edition<br>
+            </p>
+            <button class="btn" onclick="startGame()">start the love</button>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <div class="header-stats">
+                <div class="stat-box">
+                    <div class="stat-label">Target</div>
+                    <div class="stat-value">500</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <h3 style="margin-bottom: 15px; color: var(--primary); text-align:center;">Connect thee color yaa sayangg</h3>
+
+            <div class="game-board" id="board">
+                <svg id="svg-lines"></svg>
+            </div>
+        </div>
+
+        <div id="win-screen" class="screen hidden">
+            
+            <div id="celebration-phase">
+                <div class="photo-frame" style="width: 140px; height: 140px; border-color: var(--primary);">
+                    <img src="https://img.sanishtech.com/u/131247d982e6a3ebf68456bcf9e4d621.png" alt="Win">
+                </div>
+                <h1 style="margin: 20px 0;">You are my valentinee</h1>
+                <p style="color: #666; text-align: center; margin-bottom: 30px;">
+                    congratss yaa sayanggg!<br> dann silahkan lanjutkan longteksnyaa
+                </p>
+                <button class="btn" onclick="openLetter()">💌 Open it</button>
+            </div>
+
+            <div id="letter-phase">
+                <div class="letter-container">
+                    <div class="letter-header">
+                        <h3 style="margin: 0; color: var(--primary); font-family: 'Pacifico', cursive; font-size: 1.5rem;">For my honey sweetie</h3>
+                        <hr style="border: 0; border-top: 2px dashed #ffcad4; margin-top: 10px;">
+                    </div>
+                    
+                    <div class="letter-content">
+HAII HAAIII IM BACKKK WKWKWKWKWMWM
+
+YAAPSSS ada gamee lagi nih kali inii buat ngelanjutinn yang tadii, karenaa tadii longteksnyaa tidaa muatt jadinyaa aku bikin disinii dehhh.. spesial gamee niii.. jadii di game ini tuu layoutnyaa bakal ngingetin kamuu pas aku pertama kali bikin gameee.. jadii biar sekalian nostalgia dehh.
+
+Yaa di longteks kali ini cukup spesialll lhooo, bukan hanyaa membahas tentang kitaa di hari kemarinn tapiii tentangg apresiasi buat kamuu jugaaaa... huhh gimanaa yaa, intinyaa yaa terimakasihh dehh aku bangga bangett bisa jadi bagian di hidupmuuu.
+
+Jujur kadang masii ga nyangka sii aku bisa jadi bagian dari hidupmuu, tapii yaa aku banyak gatau diri jugaaa.. ntahlahh saking gatau dirinyaa malah jadi childish sering ngambek gituu, kaya ga bersyukur bangett dehh kalau deket sama kamu tu sesusah ituuu.. 
+
+Teruss yaa kadang masih suka ga bersyukur jugaa kann kalau semisal kita itu just best friends, yaa ternyata setelah ku pikir pikir memang aslinyaa aku belum punyaa hak dan effort atau apapun itu lah yang cukup untuk mendapatkam status yang lebih tinggii, jadii ya kedepannya semoga aku bisaa accept dehh, tidaa malah ga bersyukurr.
+
+Yaa taoi di hatiku yang terdalamm aku bener bener bersyukurr punyaa kamuu nadineee.. bener bener orang yang nemenin aku dari bawahh, walaupun aku banyak mengecewakann, tapi kamu memilih untuk bertahann sama akuu.. Terimakasii banyak banyakk yaaa, semogaa kitaa bisa bertahan selamanyaa yaaa.. aku akan terus belajar buat menjadi lebih dewasaaa
+
+Teruss melanjutkan cerita dari hari senin sampai rabu kemarinnn aku mau nerusinn nihh ceritaa buat hari kamis dan jumaattt.. yeeyy di hari kamis ada apa yaakk???? yeyy sepertii biasaa dongg kamu nemeninn aku sehariannn, yaa walaupun aku banyak ngambeknyaa heheheee.. sepertii biasa jugaa main minecraftt bersama samaaa dehhh di sekolahannn.. laluu yeyy kita bisa pulang bersama di jalann dan mam cilung lagiii.. tapi yaa walaupun pas pulang aku bikin kamu marah siee. heheee dann di malemnyaa pun pas main minecraft sama samaa ga kuaatt ekwkwkwkwkw ngantuk batss wkwkwkkw.. 
+
+laluu ke hari jumaatt wkwkwkwkkw.. sebelumnya mintak maaf yak kalau ga nemenin dari oagiii, tapii aku seneng banget deh waktu sampee ke bk kamu langsung nyamperin dan nemenin aku di bk heheheheee.. yaa wlaaupun sampe sekarang belum bisa mendaftarkan kipknyaa tapii yaaa seneng deh ada kamu disinii.. terusss yaapss seneng bangett bisaa bikinn beberapaa transisi samaa kamuu wkwkwkwk.. yaa walaupun di hujatt banyak orang sii.m mintak maaf yaakk, terus aku malah ngambek ngambekan (lagi).. hehehee tapi semogaa besookk hasilnyaa baguss yaaaa sayanggg.. terusss pas pulang aku malah ngrepotinn kamu huhuuu, harusnyaa aku bener gausaa ngecancel grabnya shitaa huhuu, malahh jadi ngrepotin kamu lagii deh suruh nganterinn ke rumahkuu.. terimakasii banyak banyakk yaaa... and thenn, yaa cukup sedii sii kamu gaa jadii kesini pas pulangg huhuuu.. yaa tapi seneng bangett pas malem bisa main minecraft sama kamu lagii, tapii yaa lagi dan lagi aku bebann malahh banyakk ngrepotinn kamu dan menghilangkann beberapaa barang op kamuu huhuuuu. mintaa maaff yaaaaaa
+
+Okayydee sampai jugaa di penghujung longteks iniii.. hari ini jugaa cukup berbedaa dehh.. andd yaapss walaupun kehujanan jugakk tapii yaa cukup seruu deh hari inii.. mintaa maaff yaa kalau membuatmu sedihhh.. dan maaf yaa kalau valentine ini engga sesuai ekspektasimuu.. dari segi game yang jelekk, and then hadiah yangg bukan kamu sukaa.. its my first time valentinee.. jadi aku masih banyak belajarr, dan ternyataa yaa cukupp kurang memuaskan untuk di tahun iniiii.. but yaa itss okeyydee buat pelajaran untuk neksnyaa ajaaa.. aku bener bener kecewa dari kemarin kenapaa enggaaa bergerakk dan lebih banyak effort untuk membuatnyaa huhuu.. im so sadd
+
+Its okeeyyddeee yaaa happyy valentinee yaa nadineee.. semogaa di hari kasih sayang iniii kamu merasa di sayangg sama siapapun ituu yaaaa.. dann semogaa hari inii bisa menjadi awal untuk kasih sayang yang lebih besar dari kita satu sama lain untuk kedepannyaa yaaaa.. semogaaa kita masih di beri kesempatan untuk bertemu selamanyaaa, agar bisa memberi kasih sayang yang besaarrr bangettt.. sekali lagi terimakasihh yaaa buaatt beberapa tahun iniii.. maaf yaa fathan masii banyak belajarrr.. semogaaa di sisaa hari ini kamu bahagiaaa yaaaaa... sekali lagiii happyy valantinee yaaa sayanggggg...
+
+je t'aimeeee, aku sayangg nadinee selamanyaaaaaa 💙🩵💙🩵💙🩵💙🩵💙🩵💙🩵💙🩵💙🩵💙💙🩵💙🩵💙🩵
+
+
+
+                    </div>
+                    
+                    <div class="scroll-hint">Scroll ke bawah untuk baca • Main lagi? klik tombol bawah</div>
+                </div>
+                <button class="btn" onclick="location.reload()" style="background: #ccc; margin-top: 15px; padding: 10px 20px; font-size: 0.9rem;">Main Ulang</button>
+            </div>
+
+        </div>
+    </div>
+
+    <audio id="bgm" loop><source src="https://files.catbox.moe/owzn9o.mp3" type="audio/mpeg"></audio>
+    <audio id="pop-sound"><source src="https://files.catbox.moe/modfzl.mp3" type="audio/mp4"></audio>
+    <audio id="win-sound"><source src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.m4a" type="audio/mp4"></audio>
+
+    <script>
+        // CONFIG
+        const GRID_SIZE = 6;
+        const TARGET_SCORE = 500;
+        const COLORS = ['#ff4d6d', '#845ec2', '#ffc75f', '#008f7a', '#4d8076'];
+        
+        // VARS
+        let score = 0;
+        let isDragging = false;
+        let selectedDots = [];
+        
+        // DOM
+        const board = document.getElementById('board');
+        const scoreEl = document.getElementById('score');
+        const progressBar = document.getElementById('progress-bar');
+        const bgm = document.getElementById('bgm');
+        const popSound = document.getElementById('pop-sound');
+        const winSound = document.getElementById('win-sound');
+
+        // INIT
+        function startGame() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            bgm.volume = 0.5;
+            bgm.play().catch(()=>{});
+            initBoard();
+        }
+
+        function initBoard() {
+            board.innerHTML = '<svg id="svg-lines"></svg>';
+            for(let r=0; r<GRID_SIZE; r++){
+                for(let c=0; c<GRID_SIZE; c++){
+                    const color = COLORS[Math.floor(Math.random()*COLORS.length)];
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.style.backgroundColor = color;
+                    dot.dataset.color = color;
+                    dot.dataset.r = r; dot.dataset.c = c;
+                    
+                    dot.addEventListener('mousedown', startDrag);
+                    dot.addEventListener('mouseover', onDrag);
+                    dot.addEventListener('touchstart', startDrag, {passive:false});
+                    dot.addEventListener('touchmove', onTouchMove, {passive:false});
+                    
+                    board.appendChild(dot);
+                }
+            }
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        // LOGIC
+        function startDrag(e) {
+            if(score >= TARGET_SCORE) return;
+            e.preventDefault();
+            isDragging = true;
+            addDot(e.target);
+        }
+
+        function onDrag(e) {
+            if(!isDragging) return;
+            addDot(e.target);
+        }
+
+        function onTouchMove(e) {
+            if(!isDragging) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if(target && target.classList.contains('dot')) addDot(target);
+        }
+
+        function addDot(dot) {
+            const color = dot.dataset.color;
+            if(selectedDots.length === 0) {
+                select(dot);
+            } else {
+                const last = selectedDots[selectedDots.length-1];
+                const r1 = parseInt(last.dataset.r), c1 = parseInt(last.dataset.c);
+                const r2 = parseInt(dot.dataset.r), c2 = parseInt(dot.dataset.c);
+                
+                // Backtrack
+                if(selectedDots.length > 1 && selectedDots[selectedDots.length-2] === dot) {
+                    last.classList.remove('active');
+                    selectedDots.pop();
+                    drawLines();
+                    return;
+                }
+
+                // Validate
+                if(color === last.dataset.color && !selectedDots.includes(dot) && 
+                   Math.abs(r1-r2)<=1 && Math.abs(c1-c2)<=1) {
+                    select(dot);
+                }
+            }
+        }
+
+        function select(dot) {
+            selectedDots.push(dot);
+            dot.classList.add('active');
+            popSound.currentTime = 0; popSound.play().catch(()=>{});
+            drawLines();
+        }
+
+        function endDrag() {
+            if(!isDragging) return;
+            isDragging = false;
+            
+            if(selectedDots.length >= 3) {
+                score += selectedDots.length * 10;
+                scoreEl.innerText = score;
+                progressBar.style.width = Math.min((score/TARGET_SCORE)*100, 100) + '%';
+                
+                selectedDots.forEach(d => {
+                    d.style.transform = 'scale(0)';
+                    setTimeout(() => {
+                        const nc = COLORS[Math.floor(Math.random()*COLORS.length)];
+                        d.style.backgroundColor = nc;
+                        d.dataset.color = nc;
+                        d.style.transform = 'scale(0.9)';
+                        d.classList.remove('active');
+                    }, 200);
+                });
+                
+                if(score >= TARGET_SCORE) setTimeout(showWin, 500);
+            } else {
+                selectedDots.forEach(d => d.classList.remove('active'));
+            }
+            selectedDots = [];
+            document.getElementById('svg-lines').innerHTML = '';
+        }
+
+        function drawLines() {
+            const svg = document.getElementById('svg-lines');
+            if(selectedDots.length < 2) { svg.innerHTML = ''; return; }
+            
+            let pts = selectedDots.map(d => {
+                const r = d.getBoundingClientRect();
+                const p = board.getBoundingClientRect();
+                return `${r.left - p.left + r.width/2},${r.top - p.top + r.height/2}`;
+            }).join(' ');
+            
+            svg.innerHTML = `<polyline points="${pts}" style="fill:none;stroke:${selectedDots[0].dataset.color};stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:0.6"/>`;
+        }
+
+        // --- WIN LOGIC ---
+        function showWin() {
+            winSound.play();
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('win-screen').classList.remove('hidden');
+            
+            // Confetti Effect
+            for(let i=0; i<50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random()*100 + '%';
+                c.style.backgroundColor = COLORS[Math.floor(Math.random()*COLORS.length)];
+                c.style.animationDuration = (Math.random()*2 + 1) + 's';
+                document.getElementById('celebration-phase').appendChild(c);
+            }
+        }
+
+        function openLetter() {
+            const phase1 = document.getElementById('celebration-phase');
+            const phase2 = document.getElementById('letter-phase');
+            
+            // Fade out celebration
+            phase1.style.opacity = '0';
+            setTimeout(() => {
+                phase1.style.display = 'none';
+                phase2.style.display = 'flex';
+                // Trigger reflow
+                void phase2.offsetWidth; 
+                phase2.classList.add('active');
+            }, 500);
+        }
+
+    </script>
+</body>
+</html>
+  
